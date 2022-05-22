@@ -1,6 +1,5 @@
 import java.io.*;
 import java.util.*;
-import java.util.Formatter.BigDecimalLayoutForm;
 
 public class StoreManagement {
     private ArrayList<Staff> staffs;
@@ -131,10 +130,12 @@ public class StoreManagement {
                 if (eachStaff.toString().split("_")[0].equals(each)) {
                     finalResult.add(new SeasonalStaff(eachStaff.sID, eachStaff.sName, eachStaff.hourlyWage));
                     count++;
+                    
                 }
-                if (count == 5) {
-                    break;
-                }
+    
+            }
+            if (count == 5) {
+                break;
             }
         }
         return finalResult;
@@ -142,38 +143,60 @@ public class StoreManagement {
 
     // requirement 3
     public ArrayList<FullTimeStaff> getFullTimeStaffsHaveSalaryGreaterThan(int lowerBound) {
-        // ArrayList<SeasonalStaff> sss = new ArrayList<SeasonalStaff>();
-        // List<String> moneyData = new ArrayList<String>();        
+        List<String> moneyData = new ArrayList<String>();        
 
-        // for (Staff eachStaff : this.staffs) {   
-        //     for (String eachTime : this.workingTime) {
-        //         String[] TimeData = eachTime.split(",");
-        //         if (TimeData[0].equals(eachStaff.sID)) {
-        //             int check = eachStaff.toString().split("_").length;
-        //             if ( check == 4 || check == 5) {
-        //                 Double invoice = Double.parseDouble(eachStaff.toString().split("_")[3]);
-        //                 Double bonus = Double.parseDouble(eachStaff.toString().split("_")[2]);
-        //                 Double money = invoice * bonus;
+        for (Staff eachStaff : this.staffs) {   
+            for (String eachTime : this.workingTime) {
+                String[] TimeData = eachTime.split(",");
+                if (TimeData[0].equals(eachStaff.sID)) {
+                    int check = eachStaff.toString().split("_").length;
+                    if ( check == 4 || check == 5) {
+                        Double invoice = Double.parseDouble(eachStaff.toString().split("_")[3]);
+                        Double bonus = Double.parseDouble(eachStaff.toString().split("_")[2]);
+                        Double money = invoice * bonus;
 
-        //                 if (Double.parseDouble(TimeData[1]) > Double.parseDouble("21")) {
-        //                     money += ( Double.parseDouble(TimeData[1]) - Double.parseDouble("21") ) * Double.parseDouble("100000");
-        //                 }
+                        if (Double.parseDouble(TimeData[1]) > Double.parseDouble("21")) {
+                            money += ( Double.parseDouble(TimeData[1]) - Double.parseDouble("21") ) * Double.parseDouble("100000");
+                        }
 
-        //                 if (check == 5) {
-        //                     Double bigBonus = Double.parseDouble(eachStaff.toString().split("_")[4]);
-        //                     money += bigBonus;
-        //                 }
-        //                 moneyData.add(eachStaff.sID + "_" + money);
-        //             }
-        //         }
+                        if (check == 5) {
+                            Double bigBonus = Double.parseDouble(eachStaff.toString().split("_")[4]);
+                            money += bigBonus;
+                        }
+                        moneyData.add(eachStaff.sID + "_" + money);
+                    }
+                }
                 
-        //     }
-        // }
-        // System.out.println(moneyData);
+            }
+        }
+        
+        List<String> moneyResultData = new ArrayList<String>();        
+        for (String each : moneyData) {
+            if (Double.parseDouble(each.split("_")[1]) > lowerBound) {
+                moneyResultData.add(each);
+            }
+        }
 
+        List<String> ids = new ArrayList<String>();        
+        for (String each : moneyResultData) {
+            ids.add(each.split("_")[0]);
+        }
+        
+        ArrayList<FullTimeStaff> result = new ArrayList<FullTimeStaff>();
+        for (Staff each : this.staffs) {
+            for (String id : ids) {
+                if (each.toString().split("_")[0].equals(id)) {
+                    if (id.contains("CT")) {
+                        result.add(new FullTimeStaff(id, each.toString().split("_")[1], Integer.parseInt(each.toString().split("_")[3]), Double.parseDouble(each.toString().split("_")[2])));
+                    }
+                    if (id.contains("QL")) {
+                        result.add(new Manager(id, each.toString().split("_")[1], Integer.parseInt(each.toString().split("_")[3]), Double.parseDouble(each.toString().split("_")[2]), Integer.parseInt(each.toString().split("_")[4])));
+                    }
+                }
+            }
+        }
 
-        ArrayList<FullTimeStaff> sss = new ArrayList<FullTimeStaff>();
-        return sss;
+        return result;
     }
 
     // requirement 4
@@ -275,12 +298,13 @@ public class StoreManagement {
                 }
             }
         }
-        
+
         List<String> lastData = new ArrayList<String>();        
         for (String each : data) {
             double total = Double.parseDouble(each.split("_")[3]) * Double.parseDouble(each.split("_")[4]);
             lastData.add(each + "_" + total);
         }
+        
 
         List<Double> result = new ArrayList<Double>();
         List<String> temp = new ArrayList<String>();        
@@ -296,8 +320,9 @@ public class StoreManagement {
             temp.add(eachInvoice.toString().split("_")[1] + "_"+ sum);
             result.add(sum);
         }
-        
+
         double max = Collections.max(result);
+
         String id = new String("");
         for (String i : temp) {
             if (max == Double.parseDouble(i.toString().split("_")[1])) {
@@ -305,10 +330,18 @@ public class StoreManagement {
                 break;
             }
         }
-        
+
         for (Staff each : this.staffs) {
             if (each.toString().split("_")[0].equals(id)) {
-                maxStaff = new SeasonalStaff(id, each.sName, Integer.parseInt(each.toString().split("_")[2]));
+                if (id.contains("TV")) {
+                    maxStaff = new SeasonalStaff(id, each.sName, Integer.parseInt(each.toString().split("_")[2]));
+                }
+                if (id.contains("CT")) {
+                    maxStaff = new FullTimeStaff(id, each.sName, Integer.parseInt(each.toString().split("_")[3]), Double.parseDouble(each.toString().split("_")[2]));
+                }
+                if (id.contains("QL")) {
+                    maxStaff = new Manager(id, each.sName, Integer.parseInt(each.toString().split("_")[3]), Double.parseDouble(each.toString().split("_")[2]), Integer.parseInt(each.toString().split("_")[4]));
+                }
             }
         }
 
@@ -377,7 +410,3 @@ public class StoreManagement {
         return true;
     }
 }
-
-
-
-
